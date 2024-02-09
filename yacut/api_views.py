@@ -37,7 +37,7 @@ def create_id():
     return jsonify({"url": url, "short_link": full_short_link}), 201
 
 
-@app.route('/api/id/<short_id>/', methods=['GET',])
+@app.route('/api/id/<short_id>/', methods=['GET', ])
 def get_url(short_id):
     url_map = URLMap.query.filter_by(short=short_id).first()
     if not url_map:
