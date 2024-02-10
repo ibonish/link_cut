@@ -1,10 +1,12 @@
 from flask import flash, redirect, render_template, url_for
 
 from yacut import db
+
 from . import app
+from .constans import REDIRECT_FUNC
 from .forms import URLForm
 from .models import URLMap
-from .constans import REDIRECT_FUNC
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index_view():

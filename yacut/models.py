@@ -1,11 +1,14 @@
-import re
-from datetime import datetime
 import random
+import re
 import string
+from datetime import datetime
 
 from wtforms.validators import ValidationError
+
 from yacut import db
-from .constans import MAX_LENGTH_SHORT, MAX_LENGTH_LONG, RE_PATTERN, SHORT_EXIST, UNCORRECT, MAX_LENGTH_SHORT, LENGTH_SHORT
+
+from .constans import (LENGTH_SHORT, MAX_LENGTH_LONG, MAX_LENGTH_SHORT,
+                       RE_PATTERN, SHORT_EXIST, UNCORRECT)
 
 
 class URLMap(db.Model):

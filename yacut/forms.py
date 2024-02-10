@@ -2,8 +2,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
 
+from .constans import (CREATE, DATA_REQUIRED, LONG_URL, MAX_LENGTH_LONG,
+                       MAX_LENGTH_SHORT, SHORT_EXIST, SHORT_URL)
 from .models import URLMap
-from .constans import MAX_LENGTH_LONG, MAX_LENGTH_SHORT, LONG_URL, SHORT_URL, DATA_REQUIRED, CREATE, SHORT_EXIST
 
 
 class URLForm(FlaskForm):
