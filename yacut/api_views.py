@@ -3,7 +3,7 @@ from http import HTTPStatus
 from flask import jsonify, request, url_for
 from wtforms.validators import ValidationError
 
-from . import app, db
+from . import app
 from .error_handlers import BadRequest
 from .models import URLMap
 
@@ -21,7 +21,7 @@ def create_id():
     custom_id = data.get('custom_id')
     if not url:
         raise BadRequest(NO_URL, HTTPStatus.BAD_REQUEST)
-    
+
     try:
         custom_id = URLMap.save(original_link=url, short=custom_id).short
         return jsonify(

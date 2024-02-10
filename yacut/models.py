@@ -20,7 +20,7 @@ class URLMap(db.Model):
     @staticmethod
     def get_link(short_link):
         return URLMap.query.filter_by(short=short_link).first()
-    
+
     @staticmethod
     def get_original_link(short_link):
         return URLMap.query.filter_by(short=short_link).first_or_404().original
