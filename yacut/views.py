@@ -24,8 +24,8 @@ def index_view():
                     REDIRECT_FUNC,
                     short=custom_id,
                     _external=True
-                    )
-                }
+                )
+            }
         )
     except Exception as e:
         flash(str(e))

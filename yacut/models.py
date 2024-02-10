@@ -43,7 +43,7 @@ class URLMap(db.Model):
     @staticmethod
     def save(original_link, short=None):
         if short is not None and len(short) > MAX_LENGTH_SHORT:
-            raise ValidationError(UNCORRECT) 
+            raise ValidationError(UNCORRECT)
         if not short:
             short = URLMap.get_unique_short_id()
         if URLMap.get_link(short):
