@@ -4,36 +4,31 @@ from yacut import db
 from . import app
 from .forms import URLForm
 from .models import URLMap
-
+from .constans import REDIRECT_FUNC
 
 @app.route('/', methods=['GET', 'POST'])
 def index_view():
     form = URLForm()
-    if form.validate_on_submit():
-        custom_id = form.custom_id.data
-        original_link = form.original_link.data
-        if not custom_id:
-            custom_id = URLMap.get_unique_short_id(original_link)
+    if not form.validate_on_submit():
+        return render_template('index.html', form=form)
+    custom_id = form.custom_id.data
+    original_link = form.original_link.data
 
-        if URLMap.query.filter_by(short=custom_id).first():
-            flash('Предложенный вариант короткой ссылки уже существует.', 'short')
-            return render_template('index.html', form=form)
-
-        if not URLMap.is_valid_custom_link(custom_id):
-            flash('Введены недопустимые символы.', 'short')
-            return render_template('index.html', form=form)
-
-        url = URLMap(
-            original=original_link,
-            short=custom_id,
-        )
-        db.session.add(url)
-        db.session.commit()
-        flash(url_for('short_link_url', short=custom_id, _external=True), 'link')
-    return render_template('index.html', form=form)
+    try:
+        custom_id = URLMap.save(original_link, custom_id).short
+        return render_template('index.html',
+                               form=form,
+                                context={
+                                'short': url_for(
+                                    REDIRECT_FUNC,
+                                    short=custom_id,
+                                    _external=True
+                                )})
+    except Exception as e:
+        flash(str(e))
+        return render_template('index.html', form=form)
 
 
 @app.route('/<string:short>', methods=['GET', ])
 def short_link_url(short):
-    url_map = URLMap.query.filter_by(short=short).first_or_404()
-    return redirect(url_map.original)
+    return redirect(URLMap.get_original_link(short))

@@ -1,12 +1,18 @@
 # Сервис для укорачивания ссылок
 
+## Технологический стек
+
+- Python 3.9
+- **Веб-фреймворк:** Flask
+- SQLAlchemy
+- Flask-Migrate
 
 ## Начало работы
 
 Клонировать репозиторий и перейти в него в командной строке:
 
 ```
-git clone 
+git clone git@github.com:ibonish/yacut.git
 ```
 
 ```
@@ -50,6 +56,12 @@ DATABASE_URI=sqlite:///db.sqlite3
 SECRET_KEY=YOUR_SECRET_KEY
 ```
 
+Настроить базу данных:
+
+```
+flask db upgrade
+```
+
 Запустить проект командой:
 
 ```
@@ -67,4 +79,6 @@ flask run
 * `/api/id/<short_id>/` — GET-запрос на получение оригинальной ссылки по указанному короткому идентификатору.
 
 
-Автор: Скрябина Ольга
+Автор:
+
+- [Скрябина Ольга](https://github.com/ibonish)

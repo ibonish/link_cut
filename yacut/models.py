@@ -1,30 +1,56 @@
-import hashlib
 import re
 from datetime import datetime
+import random
+import string
 
+from wtforms.validators import ValidationError
 from yacut import db
+from .constans import MAX_LENGTH_SHORT, MAX_LENGTH_LONG, RE_PATTERN, SHORT_EXIST, UNCORRECT, MAX_LENGTH_SHORT, LENGTH_SHORT
 
 
 class URLMap(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    original = db.Column(db.String(256), nullable=False)
-    short = db.Column(db.String(16), unique=True, nullable=False)
+    original = db.Column(db.String(MAX_LENGTH_LONG), nullable=False)
+    short = db.Column(db.String(MAX_LENGTH_SHORT), unique=True, nullable=False)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     @staticmethod
-    def get_unique_short_id(original_url, attempt=1):
-        hash_object = hashlib.md5(original_url.encode())
-        hex_dig = hash_object.hexdigest()
-        short_link = hex_dig[:6] if attempt == 1 else hex_dig[:5] + str(attempt)
+    def get_link(short_link):
+        return URLMap.query.filter_by(short=short_link).first()
+    
+    @staticmethod
+    def get_original_link(short_link):
+        return URLMap.query.filter_by(short=short_link).first_or_404().original
 
-        found_object = URLMap.query.filter_by(short=short_link).first()
-        if found_object is not None:
-            return URLMap.get_unique_short_id(original_url, attempt + 1)
-        return short_link
+    @staticmethod
+    def get_unique_short_id():
+        chars = string.ascii_letters + string.digits
+        while True:
+            short_link = ''.join(random.choice(chars) for _ in range(LENGTH_SHORT))
+            if not URLMap.get_link(short_link):
+                return short_link
 
     @staticmethod
     def is_valid_custom_link(link):
-        pattern = r'^[A-Za-z0-9]+$'
+        pattern = RE_PATTERN
         if re.match(pattern, link):
             return True
         return False
+
+    @staticmethod
+    def save(original_link, short=None):
+        if short is not None and len(short) > MAX_LENGTH_SHORT:
+            raise ValidationError(UNCORRECT) 
+        if not short:
+            short = URLMap.get_unique_short_id()
+        if URLMap.get_link(short):
+            raise ValidationError(SHORT_EXIST)
+        if not URLMap.is_valid_custom_link(short):
+            raise ValidationError(UNCORRECT)
+        url = URLMap(
+            original=original_link,
+            short=short,
+        )
+        db.session.add(url)
+        db.session.commit()
+        return url

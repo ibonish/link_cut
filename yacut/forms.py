@@ -1,19 +1,26 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms.validators import DataRequired, Length, Optional, ValidationError
+
+from .models import URLMap
+from .constans import MAX_LENGTH_LONG, MAX_LENGTH_SHORT, LONG_URL, SHORT_URL, DATA_REQUIRED, CREATE, SHORT_EXIST
 
 
 class URLForm(FlaskForm):
     original_link = StringField(
-        'Длинная ссылка',
+        LONG_URL,
         validators=[
-            DataRequired(message='Обязательное поле'),
-            Length(1, 256)
+            DataRequired(message=DATA_REQUIRED),
+            Length(max=MAX_LENGTH_LONG)
         ]
     )
 
     custom_id = StringField(
-        'Ваш вариант короткой ссылки',
-        validators=[Length(1, 16), Optional()]
+        SHORT_URL,
+        validators=[Length(max=MAX_LENGTH_SHORT), Optional()]
     )
-    submit = SubmitField('Создать')
+    submit = SubmitField(CREATE)
+
+    def validate_custom_id(self, short):
+        if URLMap.get_link(short.data):
+            raise ValidationError(SHORT_EXIST)

@@ -1,0 +1,11 @@
+LONG_URL = 'Длинная ссылка'
+SHORT_URL = 'Ваш вариант короткой ссылки'
+MAX_LENGTH_LONG = 2000
+LENGTH_SHORT = 6
+MAX_LENGTH_SHORT = 16
+RE_PATTERN = r'^[A-Za-z0-9]+$'
+SHORT_EXIST = 'Предложенный вариант короткой ссылки уже существует.'
+UNCORRECT= 'Указано недопустимое имя для короткой ссылки'
+REDIRECT_FUNC = 'short_link_url'
+DATA_REQUIRED = 'Обязательное поле'
+CREATE = 'Создать'
