@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from flask import jsonify, render_template
 
-from yacut import app, db
+from . import app, db
 
 
 @app.errorhandler(404)
@@ -16,7 +16,7 @@ def internal_error(error):
     return render_template('500.html'), HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-class BadRequest(Exception):
+class InvalidApiUsage(Exception):
     status_code = HTTPStatus.BAD_REQUEST
 
     def __init__(self, message, status_code=None):
@@ -29,7 +29,11 @@ class BadRequest(Exception):
         return dict(message=self.message)
 
 
-@app.errorhandler(BadRequest)
+@app.errorhandler(InvalidApiUsage)
 def invalid_request(error):
     db.session.rollback()
     return jsonify(error.to_dict()), error.status_code
+
+
+class GenerationException(Exception):
+    pass

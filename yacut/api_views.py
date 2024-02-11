@@ -4,8 +4,10 @@ from flask import jsonify, request, url_for
 from wtforms.validators import ValidationError
 
 from . import app
-from .error_handlers import BadRequest
+from .constans import REDIRECT_FUNC
+from .error_handlers import InvalidApiUsage
 from .models import URLMap
+
 
 NO_BODY = 'Отсутствует тело запроса'
 NO_URL = '"url" является обязательным полем!'
@@ -16,31 +18,34 @@ NOT_FOUD = "Указанный id не найден"
 def create_id():
     data = request.get_json()
     if not data:
-        raise BadRequest(NO_BODY, HTTPStatus.BAD_REQUEST)
+        raise InvalidApiUsage(NO_BODY, HTTPStatus.BAD_REQUEST)
     url = data.get('url')
-    custom_id = data.get('custom_id')
     if not url:
-        raise BadRequest(NO_URL, HTTPStatus.BAD_REQUEST)
+        raise InvalidApiUsage(NO_URL, HTTPStatus.BAD_REQUEST)
 
     try:
-        custom_id = URLMap.save(original_link=url, short=custom_id).short
+        short = URLMap.add_to_db(
+            original_link=url,
+            short=data.get('custom_id'),
+            validate=True
+        ).short
         return jsonify(
             {
                 'url': url,
                 'short_link': url_for(
-                    'short_link_url',
-                    short=custom_id,
+                    REDIRECT_FUNC,
+                    short=short,
                     _external=True
                 )
             }
         ), HTTPStatus.CREATED
     except ValidationError as error:
-        raise BadRequest(str(error))
+        raise InvalidApiUsage(str(error))
 
 
-@app.route('/api/id/<short_id>/', methods=['GET', ])
-def get_url(short_id):
-    url_map = URLMap.get_link(short_id)
+@app.route('/api/id/<short>/', methods=['GET', ])
+def get_url(short):
+    url_map = URLMap.get(short)
     if not url_map:
-        raise BadRequest(NOT_FOUD, HTTPStatus.NOT_FOUND)
-    return jsonify({"url": url_map.original}), HTTPStatus.OK
+        raise InvalidApiUsage(NOT_FOUD, HTTPStatus.NOT_FOUND)
+    return jsonify({'url': url_map.original}), HTTPStatus.OK

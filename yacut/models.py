@@ -1,14 +1,18 @@
 import random
 import re
-import string
 from datetime import datetime
 
 from wtforms.validators import ValidationError
 
-from yacut import db
-
-from .constans import (LENGTH_SHORT, MAX_LENGTH_LONG, MAX_LENGTH_SHORT,
+from . import db
+from .constans import (CHARS, LENGTH_SHORT, MAX_LENGTH_LONG, MAX_LENGTH_SHORT,
                        RE_PATTERN, SHORT_EXIST, UNCORRECT)
+from .error_handlers import GenerationException
+
+
+MAX_TRIES = 10
+GEN_MSG = 'Ошибка генерации короткой ссылки.'
+ORIGINAL_MSG = 'Исходная ссылка слишком длинная.'
 
 
 class URLMap(db.Model):
@@ -18,42 +22,39 @@ class URLMap(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     @staticmethod
-    def get_link(short_link):
-        return URLMap.query.filter_by(short=short_link).first()
+    def get(short):
+        return URLMap.query.filter_by(short=short).first()
 
     @staticmethod
-    def get_original_link(short_link):
-        return URLMap.query.filter_by(short=short_link).first_or_404().original
+    def get_original_or_404(short):
+        return URLMap.query.filter_by(short=short).first_or_404().original
 
     @staticmethod
     def get_unique_short_id():
-        chars = string.ascii_letters + string.digits
-        while True:
-            short_link = ''.join(random.choice(chars) for _ in range(LENGTH_SHORT))
-            if not URLMap.get_link(short_link):
-                return short_link
+        for _ in range(MAX_TRIES):
+            short = ''.join(
+                random.choices(CHARS, k=LENGTH_SHORT)
+            )
+            if not URLMap.get(short):
+                return short
+        raise GenerationException(GEN_MSG)
 
     @staticmethod
-    def is_valid_custom_link(link):
-        pattern = RE_PATTERN
-        if re.match(pattern, link):
-            return True
-        return False
-
-    @staticmethod
-    def save(original_link, short=None):
-        if short is not None and len(short) > MAX_LENGTH_SHORT:
+    def add_to_db(original_link, short=None, validate=False):
+        if short and len(short) > MAX_LENGTH_SHORT and validate:
+            raise ValidationError(UNCORRECT)
+        if len(original_link) > MAX_LENGTH_LONG and validate:
+            raise ValidationError(ORIGINAL_MSG)
+        if short and URLMap.get(short):
+            raise ValidationError(SHORT_EXIST)
+        if short and not re.match(RE_PATTERN, short):
             raise ValidationError(UNCORRECT)
         if not short:
             short = URLMap.get_unique_short_id()
-        if URLMap.get_link(short):
-            raise ValidationError(SHORT_EXIST)
-        if not URLMap.is_valid_custom_link(short):
-            raise ValidationError(UNCORRECT)
-        url = URLMap(
+        url_map = URLMap(
             original=original_link,
             short=short,
         )
-        db.session.add(url)
+        db.session.add(url_map)
         db.session.commit()
-        return url
+        return url_map

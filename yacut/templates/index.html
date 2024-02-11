@@ -47,13 +47,11 @@
         <div class="col-sm">
           <p class="text-center">
           <h5 class="text-center">
-            {% if context %}
-            {% with short = context.short %}
+            {% if short_url %}
               <h5 class="text-center">
                 Ваша короткая ссылка:
-                <a href="{{ short }}">{{ short }}</a>
+                <a href="{{ short_url }}">{{ short_url }}</a>
               </h5>
-            {% endwith %}
           {% endif %}
           </h5>
           </p>

@@ -11,21 +11,19 @@ def index_view():
     form = URLForm()
     if not form.validate_on_submit():
         return render_template('index.html', form=form)
-    custom_id = form.custom_id.data
-    original_link = form.original_link.data
-
     try:
-        custom_id = URLMap.save(original_link, custom_id).short
+        short = URLMap.add_to_db(
+            form.original_link.data,
+            form.custom_id.data,
+        ).short
         return render_template(
             'index.html',
             form=form,
-            context={
-                'short': url_for(
-                    REDIRECT_FUNC,
-                    short=custom_id,
-                    _external=True
-                )
-            }
+            short_url=url_for(
+                REDIRECT_FUNC,
+                short=short,
+                _external=True
+            )
         )
     except Exception as e:
         flash(str(e))
@@ -34,4 +32,4 @@ def index_view():
 
 @app.route('/<string:short>', methods=['GET', ])
 def short_link_url(short):
-    return redirect(URLMap.get_original_link(short))
+    return redirect(URLMap.get_original_or_404(short))
