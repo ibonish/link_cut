@@ -1,9 +1,11 @@
 from flask import flash, redirect, render_template, url_for
+from wtforms.validators import ValidationError
 
 from . import app
 from .constans import REDIRECT_FUNC
 from .forms import URLForm
 from .models import URLMap
+from .error_handlers import GenerationException
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -25,7 +27,7 @@ def index_view():
                 _external=True
             )
         )
-    except Exception as e:
+    except (ValidationError, GenerationException) as e:
         flash(str(e))
         return render_template('index.html', form=form)
 

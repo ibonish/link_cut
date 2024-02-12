@@ -5,7 +5,7 @@ from wtforms.validators import ValidationError
 
 from . import app
 from .constans import REDIRECT_FUNC
-from .error_handlers import InvalidApiUsage
+from .error_handlers import InvalidApiUsage, GenerationException
 from .models import URLMap
 
 
@@ -39,7 +39,7 @@ def create_id():
                 )
             }
         ), HTTPStatus.CREATED
-    except ValidationError as error:
+    except (ValidationError, GenerationException) as error:
         raise InvalidApiUsage(str(error))
 
 

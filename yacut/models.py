@@ -11,8 +11,8 @@ from .error_handlers import GenerationException
 
 
 MAX_TRIES = 10
-GEN_MSG = 'Ошибка генерации короткой ссылки.'
-ORIGINAL_MSG = 'Исходная ссылка слишком длинная.'
+GENERATION_MESSAGE = 'Ошибка генерации короткой ссылки.'
+ORIGINAL_MESSAGE = 'Исходная ссылка слишком длинная.'
 
 
 class URLMap(db.Model):
@@ -37,18 +37,24 @@ class URLMap(db.Model):
             )
             if not URLMap.get(short):
                 return short
-        raise GenerationException(GEN_MSG)
+        raise GenerationException(GENERATION_MESSAGE)
+
+    @staticmethod
+    def validate_links(original_link, short):
+        if len(short) > MAX_LENGTH_SHORT:
+            raise ValidationError(UNCORRECT)
+        if len(original_link) > MAX_LENGTH_LONG:
+            raise ValidationError(ORIGINAL_MESSAGE)
+        if URLMap.get(short):
+            raise ValidationError(SHORT_EXIST)
+        if not re.match(RE_PATTERN, short):
+            raise ValidationError(UNCORRECT)
+        return original_link, short
 
     @staticmethod
     def add_to_db(original_link, short=None, validate=False):
-        if short and len(short) > MAX_LENGTH_SHORT and validate:
-            raise ValidationError(UNCORRECT)
-        if len(original_link) > MAX_LENGTH_LONG and validate:
-            raise ValidationError(ORIGINAL_MSG)
-        if short and URLMap.get(short):
-            raise ValidationError(SHORT_EXIST)
-        if short and not re.match(RE_PATTERN, short):
-            raise ValidationError(UNCORRECT)
+        if validate and short:
+            URLMap.validate_links(original_link, short)
         if not short:
             short = URLMap.get_unique_short_id()
         url_map = URLMap(
