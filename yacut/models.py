@@ -40,21 +40,22 @@ class URLMap(db.Model):
         raise GenerationException(GENERATION_MESSAGE)
 
     @staticmethod
-    def validate_links(original_link, short):
+    def validate_short(short):
         if len(short) > MAX_LENGTH_SHORT:
             raise ValidationError(UNCORRECT)
-        if len(original_link) > MAX_LENGTH_LONG:
-            raise ValidationError(ORIGINAL_MESSAGE)
-        if URLMap.get(short):
-            raise ValidationError(SHORT_EXIST)
         if not re.match(RE_PATTERN, short):
             raise ValidationError(UNCORRECT)
-        return original_link, short
+        if URLMap.get(short):
+            raise ValidationError(SHORT_EXIST)
+        return short
 
     @staticmethod
     def add_to_db(original_link, short=None, validate=False):
-        if validate and short:
-            URLMap.validate_links(original_link, short)
+        if validate:
+            if short:
+                URLMap.validate_short(short)
+            elif len(original_link) > MAX_LENGTH_LONG:
+                raise ValidationError(ORIGINAL_MESSAGE)
         if not short:
             short = URLMap.get_unique_short_id()
         url_map = URLMap(
